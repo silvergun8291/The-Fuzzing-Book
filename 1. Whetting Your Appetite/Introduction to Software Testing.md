@@ -37,7 +37,7 @@ Ex)
 
 #
 
-### Simple Testing
+## Simple Testing
 
 ```python
 def my_sqrt(x):
