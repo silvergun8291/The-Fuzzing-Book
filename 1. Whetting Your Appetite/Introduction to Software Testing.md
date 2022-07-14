@@ -99,7 +99,7 @@ approx = 3.0000000000393214
 
 ### Checking a Function
 
-우리가 위에서 **my_sqrt(2)**를 실행해서 얻은 값이 실제로 올바른 값일까요? 우리는 √x X √x = x라는 성질을 이용해서 증명할 수 있습니다.
+우리가 위에서 my_sqrt(2)를 실행해서 얻은 값이 실제로 올바른 값일까요? 우리는 √x X √x = x라는 성질을 이용해서 증명할 수 있습니다.
 
 ```python
 result = my_sqrt(2) * my_sqrt(2)
@@ -287,9 +287,9 @@ print(my_sqrt_checked(2.0))
 
 ## System Input vs Function Input
 
-이 시점에서 우리는 **my_sqrt()**를 다른 프로그래머가 사용할 수 있도록 할 수 있으며, 다른 프로그래머는 이를 코드에 포함할 수 있습니다. my_sqrt 함수는 third-party부터 오는 입력을 처리해야 할 것입니다. 즉, 프로그래머에 의해 제어되지 않습니다.
+이 시점에서 우리는 my_sqrt()를 다른 프로그래머가 사용할 수 있도록 할 수 있으며, 다른 프로그래머는 이를 코드에 포함할 수 있습니다. my_sqrt 함수는 third-party부터 오는 입력을 처리해야 할 것입니다. 즉, 프로그래머에 의해 제어되지 않습니다.
 
-입력이 third-party 제어 하에 있는 문자열인 프로그램 **sqrt_program()**로 이 시스템 입력을 시뮬레이션 해보겠습니다.
+입력이 third-party 제어 하에 있는 문자열인 프로그램 sqrt_program()로 이 시스템 입력을 시뮬레이션 해보겠습니다.
 
 ```python
 def sqrt_program(arg: str) -> None:
@@ -303,9 +303,9 @@ sqrt_program("4")
 >>> The root of 4 is 2.0
 ```
 
-무엇이 문제일까요? 외부 입력값이 유효한지 유효하지 않은지 검증하지 않습니다. 예를 들어 **sqrt_program(-1)**이 실행되면 무슨 일이 발생할까요?
+무엇이 문제일까요? 외부 입력값이 유효한지 유효하지 않은지 검증하지 않습니다. 예를 들어 sqrt_program(-1)이 실행되면 무슨 일이 발생할까요?
 
-음수가 **my_sqrt()** 함수 인자로 들어가게 되면, 무한 루프에 빠지게 됩니다. 이러한 문제를 해결하기 위해 우리는 1초 후에 실행을 중단시키는 **ExpectTimeout(1)**을 사용할 것입니다.
+음수가 **my_sqrt()** 함수 인자로 들어가게 되면, 무한 루프에 빠지게 됩니다. 이러한 문제를 해결하기 위해 우리는 1초 후에 실행을 중단시키는 ExpectTimeout(1)을 사용할 것입니다.
 
 ```python
 from fuzzingbook.ExpectError import ExpectTimeout
@@ -355,7 +355,7 @@ sqrt_program("-1")
 
 #
 **_Quiz_**
-.  **sqrt_program('xyzzy')**의 실행 결과는?
+.  sqrt_program('xyzzy')의 실행 결과는?
 
 1. 0
 2. 0.0
