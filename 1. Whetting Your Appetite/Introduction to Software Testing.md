@@ -3,9 +3,9 @@
 ## 목차
 
 1. Simple Testing
-* Running a Fucntion
-* Debugging a Function
-* Checking a Function
+  * Running a Fucntion
+  * Debugging a Function
+  * Checking a Function
 2. Automating Test Execution
 3. Generating Tests
 4. Run-Time verification
