@@ -2,16 +2,16 @@
 
 ## 목차
 
-1. Simple Testing
-  1. Running a Fucntion
-  2. Debugging a Function
-  3. Checking a Function
-2. Automating Test Execution
-3. Generating Tests
-4. Run-Time verification
-5. System Input vs Function Input
-6. The Limits of Testing
-7. Lessins Learned
+* Simple Testing
+  * Running a Fucntion
+  * Debugging a Function
+  * Checking a Function
+* Automating Test Execution
+* Generating Tests
+* Run-Time verification
+* System Input vs Function Input
+* The Limits of Testing
+* Lessins Learned
 
 #
 ---
