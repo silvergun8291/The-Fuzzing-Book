@@ -8,9 +8,9 @@
 * A Testing Assignment
 * A Simple Fuzzer
 * Fuzzing External Programs
-	* Creating Input Files
-	* Invoking External Programs
-	* Long-Running Fuzzing
+	- Creating Input Files
+	- Invoking External Programs
+	- Long-Running Fuzzing
 * Bugs Fuzzers Find
 	* Buffer Overflows
 	* Missing Error Checks
@@ -171,9 +171,94 @@ alzbcutzsbsxwuftbioecunclfnpvljmnfpmivwboohvtpezhqfngeqjrzovkywaankfvxultmtzrkld
 **_Quiz_**
 .  다음중 임의의 긴 10진수 문자열을 생성할 수 있는 코드는?
 
-1. fuzzer(100, 1, 100)
-2. fuzzer(100, 100, 0)
-3. fuzzer(100, 10, ord('0'))
-4. fuzzer(100, ord('0'), 10)
+1. **fuzzer(100, 1, 100)**
+2. **fuzzer(100, 100, 0)**
+3. **fuzzer(100, 10, ord('0'))**
+4. **fuzzer(100, ord('0'), 10)**
 
 #
+
+**정답**
+
+```Python
+fuzz = fuzzer(100, ord('0'), 10)
+print(fuzz)
+
+>>> 050199092904721615267546627640773972382632848750065259698551700448752187153
+```
+
+#
+
+## Fuzzing External programs
+
+외부 프로그램에 실제로 fuzzed 입력을 넣으면 어떻게 되는지 봅시다. 이를 위해 두 단계로 진행하겠습니다. 첫 번째로 우리는 fuzzed 테스트 데이터로 입력 파일을 만든 다음, 이 입력 파일을 선택한 프로그램에 넣습니다.
+
+#
+
+## Creating Input Files
+
+파일 시스템을 흐트러뜨리지 않도록 임시 파일 이름을 얻읍시다.
+
+```Python
+import os
+import tempfile
+```
+
+```Python
+basename = "input.txt"
+tempdir = tempfile.mkdtemp()
+FILE = os.path.join(tempdir, basename)
+print(FILE)
+
+>>> C:\Users\swlab\AppData\Local\Temp\tmp1p7w1ho4\input.txt
+```
+
+이제 쓰기 작업을 위해 이 파일을 열 수 있습니다. 파이썬 open() 함수는 임의의 내용을 쓸 수 있는 파일을 엽니다. 일반적으로 with 문과 함께 사용되어 파일이 더 이상 필요하지 않으면 즉시 닫을 수 있습니다.
+
+```Python
+data = fuzzer()
+with open(FILE, "w") as f:
+    f.write(data)
+```
+
+파일 내용을 읽으면 파일이 실제로 생성되었는지 확인할 수 있습니다.
+
+```Python
+contents = open(FILE).read()
+print(contents)
+assert(contents == data)
+
+>>> !7#%"*#0=)$;%6*;>638:*>80"=</>(/*:-(2<4 !:5*6856&?""11<7+%<%7,4.8,*+&,,$,."
+```
+
+#
+
+### Invoking External Programs
+
+이제 입력파일도 있으니, bc 계산기 프로그램을 테스트 해봅시다.
+
+bc를 호출하려면 파이썬 하위 프로세스 모듈을 사용하십시오. 작동 방식은 다음과 같습니다.
+
+```python
+import os
+import subprocess
+```
+
+```python
+program = "bc"
+with open(FILE, "w") as f:
+    f.write("2 + 2\n")
+result = subprocess.run([program, FILE],
+                        stdin=subprocess.DEVNULL,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        universal_newlines=True)  # Will be "text" in Python 3.7
+```
+
+우리는 결과로 부터 프로그램 출력을 확인할 수 있습니다. bc의 경우, 출력은 산술식을 계산한 결과입니다.
+
+```Python
+result.stdout
+
+>>> '4\n'
+```
