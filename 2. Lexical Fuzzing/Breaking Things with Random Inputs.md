@@ -12,21 +12,21 @@
 	- Invoking External Programs
 	- Long-Running Fuzzing
 * Bugs Fuzzers Find
-	* Buffer Overflows
-	* Missing Error Checks
-	* Rogue Numbers
+	- Buffer Overflows
+	- Missing Error Checks
+	- Rogue Numbers
 * Catching Errors
-	* Generic Checkers
-	* Program-Specific Checkers
-	* Static Code Checkers
+	- Generic Checkers
+	- Program-Specific Checkers
+	- Static Code Checkers
 * A Fuzzing Architecture
-	* Runner Classes
-	* Fuzzer Classes
+	- Runner Classes
+	- Fuzzer Classes
 * Lessons Learned
 * Exercises
-	* Exercise 1: Simulate Troff
-	* Exercise 2: Run Simulated Troff
-	* Exercise 3: Run Real Troff
+	- Exercise 1: Simulate Troff
+	- Exercise 2: Run Simulated Troff
+	- Exercise 3: Run Real Troff
 
 #
 ---
@@ -130,7 +130,7 @@ import random
 
 여기에 실제 **fuzzer()** 함수가 있습니다.
 
-```Python
+```python
 def fuzzer(max_length: int = 100, char_start: int = 32, char_range: int = 32) -> str:
     """A string of up to `max_length` characters
        in the range [`char_start`, `char_start` + `char_range`)"""
@@ -143,7 +143,7 @@ def fuzzer(max_length: int = 100, char_start: int = 32, char_range: int = 32) ->
 
 **fuzzer()** 함수는 기본 인수를 사용하여 다음과 같은 임의의 문자열을 반환합니다.
 
-```Python
+```python
 print(fuzzer())
 
 >>> !7#%"*#0=)$;%6*;>638:*>80"=</>(/*:-(2<4 !:5*6856&?""11<7+%<%7,4.8,*+&,,$,."
@@ -154,13 +154,13 @@ print(fuzzer())
 
 Fuzzing은 쉽게 다른 종류의 입력값도 만들도록 설정할 수 있습니다. 예를 들어 우리는 fuzzer()가 일련의 소문자를 생성하도록 할 수 있습니다.
 
-```Python
+```python
 # max length: 1000, start: 'a', range: 26 ('a' ~ 'z')
 fuzz = fuzzer(1000, ord('a'), 26)
 print(fuzz)
 ```
 
-```Python
+```python
 alzbcutzsbsxwuftbioecunclfnpvljmnfpmivwboohvtpezhqfngeqjrzovkywaankfvxultmtzrkldpbybiixrzolfyzcrxoclvgkhmgfxfdggsvqcygqhbzzskscocrxllosagkvaszlngpysurezehvcqcghygphnhonehczraznkibltfmocxddoxcmrvatcleysksodzlwmzdndoxrjfqigjhqjxkblyrtoaydlwwisrvxtxsejhfbnforvlfisojqaktcxpmjqsfsycisoexjctydzxzzutukdztxvdpqbjuqmsectwjvylvbixzfmqiabdnihqagsvlyxwxxconminadcaqjdzcnzfjlwccyudmdfceiepwvyggepjxoeqaqbjzvmjdlebxqvehkmlevoofjlilegieeihmetjappbisqgrjhglzgffqrdqcwfmmwqecxlqfpvgtvcddvmwkplmwadgiyckrfjddxnegvmxravaunzwhpfpyzuyyavwwtgykwfszasvlbwojetvcygectelwkputfczgsfsbclnkzzcjfywitooygjwqujseflqyvqgyzpvknddz
 ```
 
@@ -180,7 +180,7 @@ alzbcutzsbsxwuftbioecunclfnpvljmnfpmivwboohvtpezhqfngeqjrzovkywaankfvxultmtzrkld
 
 **정답**
 
-```Python
+```python
 fuzz = fuzzer(100, ord('0'), 10)
 print(fuzz)
 
@@ -199,12 +199,12 @@ print(fuzz)
 
 파일 시스템을 흐트러뜨리지 않도록 임시 파일 이름을 얻읍시다.
 
-```Python
+```python
 import os
 import tempfile
 ```
 
-```Python
+```python
 basename = "input.txt"
 tempdir = tempfile.mkdtemp()
 FILE = os.path.join(tempdir, basename)
@@ -215,7 +215,7 @@ print(FILE)
 
 이제 쓰기 작업을 위해 이 파일을 열 수 있습니다. 파이썬 open() 함수는 임의의 내용을 쓸 수 있는 파일을 엽니다. 일반적으로 with 문과 함께 사용되어 파일이 더 이상 필요하지 않으면 즉시 닫을 수 있습니다.
 
-```Python
+```python
 data = fuzzer()
 with open(FILE, "w") as f:
     f.write(data)
@@ -223,7 +223,7 @@ with open(FILE, "w") as f:
 
 파일 내용을 읽으면 파일이 실제로 생성되었는지 확인할 수 있습니다.
 
-```Python
+```python
 contents = open(FILE).read()
 print(contents)
 assert(contents == data)
@@ -235,9 +235,9 @@ assert(contents == data)
 
 ### Invoking External Programs
 
-이제 입력파일도 있으니, bc 계산기 프로그램을 테스트 해봅시다.
+이제 입력파일도 있으니, **bc** 계산기 프로그램을 테스트 해봅시다.
 
-bc를 호출하려면 파이썬 하위 프로세스 모듈을 사용하십시오. 작동 방식은 다음과 같습니다.
+**bc**를 호출하려면 파이썬 **subprocess** 모듈을 사용하십시오. 작동 방식은 다음과 같습니다.
 
 ```python
 import os
@@ -255,10 +255,64 @@ result = subprocess.run([program, FILE],
                         universal_newlines=True)  # Will be "text" in Python 3.7
 ```
 
-우리는 결과로 부터 프로그램 출력을 확인할 수 있습니다. bc의 경우, 출력은 산술식을 계산한 결과입니다.
+우리는 **결과**로 부터 프로그램 출력을 확인할 수 있습니다. **bc**의 경우, 출력은 산술식을 계산한 결과입니다.
 
-```Python
+```python
 result.stdout
 
 >>> '4\n'
 ```
+
+우리는 또한 상태를 확인할 수 있습니다. 값이 0이면 프로그램이 올바르게 종료되었음을 나타냅니다.
+
+```python
+result.returncode
+
+>>> 0
+```
+
+모든 오류 메시지는 **result.stderr**를 통해 볼 수 있습니다.
+
+```python
+result.stderr
+
+>>> ''
+```
+
+**bc** 대신, 당신이 좋아하는 어떤 프로그램도 넣을 수 있습니다. 그러나 프로그램이 시스템을 변경하거나 손상시킬 수 있는 경우 fuzzed 입력에 이러한 작업을 수행하는 데이터 또는 명령어가 포함될 수 있으니 주의해야 합니다.
+
+#
+
+**_Quiz_**
+.  재미삼아 파일 제거 프로그램(예: **rm -rf FILE**)을 테스트한다고 상상해 보십시오. 여기서 **FILE**은 **fuzzer()**에 의해 생성된 문자열입니다. **fuzzer()** (기본 인수 포함)가 **FILE** 인수를 생성하여 모든 파일을 삭제할 가능성은 얼마나 됩니까?
+
+1. About one in a billion
+2. About one in a million
+3. About one in a thousand
+4. About one in ten
+
+#
+
+사실 그 가능성은 당신이 생각하는 것보다 높습니. 예를 들어 / (루트 디렉터리)를 제거하면 전체 파일 시스템이 사라집니다. ~ (홈 디렉터리)를 제거하면 모든 파일이 사라집니다. . (현재 디렉터리)를 제거하면 현재 디렉터리의 모든 파일이 사라집니다. 이 중 하나를 만들기 위해서는 문자열 길이가 1 (100개 중 1개)과 이 세글자 중 하나 (32개 중 3개)가 필요합니다. 실제로 1000분의 1확률입니다.
+
+```python
+1/100 * 3/32
+
+>>> 0.0009375
+```
+
+그러나 두 번째 문자가 공백인 한 어떤 문자열도 실제로 처리할 수 있습니다. 즉 rm -rf / WHATEVER는 먼저 /를 처리하고 그 다음 이어지는 문자열을 처리할 수 있습니다. 첫 번째 문자는 32개 중 3개, 공백은 32개 중 1개입니다. 그래서 우리는 300개 중 1개입니다.
+
+```python
+3/32 * 1/32
+
+>>> 0.0029296875
+```
+
+퍼징 테스트가 일반적으로 수백만 번 실행된다는 점을 고려할 때 이 위험을 감수하고 싶지 않을 것입니다. 도커 컨테이너와 같이 원하는 대로 재설정할 수 있는 안전한 환경에서 퍼저를 실행하세요.
+
+#
+
+### Long-Running Fuzzing
+
+이제 테스트한 프로그램에 많은 수의 입력을 제공하여 프로그램이 충돌하는지 여부를 확인합시다. runs 변수는 모든 결과를 입력 데이터와 실제 결과의 쌍으로 저장합니다. (참고: 이 작업을 실행한느 데 시간이 걸릴 수 있습니다.)
