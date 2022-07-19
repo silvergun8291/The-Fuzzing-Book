@@ -451,7 +451,7 @@ ValueError (expected)
 
 ### Missing Error Checks
 
-많은 프로그래밍 언어들은 예외가 없지만, 대신 함수가 예외적인 상황에서 특별한 **오류 코드**를 반환합니다.예를 들어, C언어 함수 **getchar()**는 일반적으로 표준 입력으로부터 문자를 반환합니다. 입력이 없다면 **EOF**를 반환합니다. 이제 프로그래머가 공백 문자를 읽을 때까지 getchar()로 문자를 읽는다고 가정해봅시다.
+많은 프로그래밍 언어들은 예외가 없지만, 대신 함수가 예외적인 상황에서 특별한 **오류 코드**를 반환합니다.예를 들어, C언어 함수 getchar()는 일반적으로 표준 입력으로부터 문자를 반환합니다. 입력이 없다면 **EOF**를 반환합니다. 이제 프로그래머가 공백 문자를 읽을 때까지 getchar()로 문자를 읽는다고 가정해봅시다.
 
 ```c
 while (getchar() != ' ');
@@ -633,7 +633,7 @@ int main(int argc, char** argv) {
 !clang -fsanitize=address -g -o program program.c
 ```
 
-인수가 **99**인 프로그램을 실행하면 **buff[99]**가 반환되는데, 이는 42입니다.
+인수가 **99**인 프로그램을 실행하면 buff[99]가 반환되는데, 이는 42입니다.
 
 ```bash
 ./program 99; echo $?
@@ -641,7 +641,7 @@ int main(int argc, char** argv) {
 >>> 42
 ```
 
-그러나 **buf[110]**에 접근하면 AddressSanitizer에서 Out-of-bounds 오류가 발생합니다.
+그러나 buf[110]에 접근하면 AddressSanitizer에서 Out-of-bounds 오류가 발생합니다.
 
 ```bash
 ./program 110
@@ -714,7 +714,9 @@ BIRD (4 letters)
 
 ![comic1](https://velog.velcdn.com/images/silvergun8291/post/cb548b0d-91f8-44f8-8d7d-1ae56947e2a8/image.png)
 
+
 ![comic2](https://velog.velcdn.com/images/silvergun8291/post/36dd5142-bda3-44f2-991e-661709095593/image.png)
+
 
 ![comic3](https://velog.velcdn.com/images/silvergun8291/post/aed9f17f-84dc-4cf2-8598-aed1c579804a/image.png)
 
@@ -856,7 +858,7 @@ print(result)
 >>> True
 ```
 
-이 airport code 리스트는 매우 중요할 수 있습니다. 공항 코드 중 하나에서 맞춤법이 틀린 경우 어떤 응용 프로그램이든 영향을 미칠 수 있습니다. 따라서 리스트의 일관성을 확인하는 기능을 도입합니다. 일관성 조건을 representation invariant이라고 하며, 이를 확인하는 함수(또는 메소드)는 일반적으로 the representation is ok이라는 뜻의 **repOK()**로 명명됩니다.
+이 airport code 리스트는 매우 중요할 수 있습니다. 공항 코드 중 하나에서 맞춤법이 틀린 경우 어떤 응용 프로그램이든 영향을 미칠 수 있습니다. 따라서 리스트의 일관성을 확인하는 기능을 도입합니다. 일관성 조건을 representation invariant이라고 하며, 이를 확인하는 함수(또는 메소드)는 일반적으로 the representation is ok이라는 뜻의 repOK()로 명명됩니다.
 
 
 
