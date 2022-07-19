@@ -93,11 +93,7 @@ EQYGAXPTVPJGTYHXFJ
 (CompletedProcess(args='cat', returncode=0, stdout='BZOQTXFBTEOVYX', stderr=''),
  'PASS')
  ```
-<<<<<<< HEAD
 
-=======
- 
->>>>>>> 7b2f28347e696ba07c1cd88d3c4666b90cd32f8e
 ![diagram2](https://velog.velcdn.com/images/silvergun8291/post/480dc1c6-2f25-4dda-a6e9-4cc7e2680a88/image.JPG)
 
 #
@@ -132,7 +128,6 @@ EQYGAXPTVPJGTYHXFJ
 import random
 ```
 
-<<<<<<< HEAD
 여기에 실제 **fuzzer()** 함수가 있습니다.
 
 ```Python
@@ -182,13 +177,3 @@ alzbcutzsbsxwuftbioecunclfnpvljmnfpmivwboohvtpezhqfngeqjrzovkywaankfvxultmtzrkld
 4. fuzzer(100, ord('0'), 10)
 
 #
-=======
-
-
-
-
-
-
-
-
->>>>>>> 7b2f28347e696ba07c1cd88d3c4666b90cd32f8e
