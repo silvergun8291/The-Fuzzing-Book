@@ -228,12 +228,14 @@ contents = open(FILE).read()
 print(contents)
 assert(contents == data)
 
->>> !7#%"*#0=)$;%6*;>638:*>80"=</>(/*:-(2<4 !:5*6856&?""11<7+%<%7,4.8,*+&,,$,."
+>>> !.:),08>84-$3<-02-6/ 5<6>1'+;<;06,2>5&$4560-+"
 ```
 
 #
 
 ### Invoking External Programs
+
+[bc download](https://ftp.jaist.ac.jp/pub/GNU/bc/)
 
 이제 입력파일도 있으니, **bc** 계산기 프로그램을 테스트 해봅시다.
 
@@ -258,7 +260,7 @@ result = subprocess.run([program, FILE],
 우리는 **결과**로 부터 프로그램 출력을 확인할 수 있습니다. **bc**의 경우, 출력은 산술식을 계산한 결과입니다.
 
 ```python
-result.stdout
+print(result.stdout)
 
 >>> '4\n'
 ```
@@ -266,7 +268,7 @@ result.stdout
 우리는 또한 상태를 확인할 수 있습니다. 값이 0이면 프로그램이 올바르게 종료되었음을 나타냅니다.
 
 ```python
-result.returncode
+print(result.returncode)
 
 >>> 0
 ```
@@ -274,7 +276,7 @@ result.returncode
 모든 오류 메시지는 **result.stderr**를 통해 볼 수 있습니다.
 
 ```python
-result.stderr
+print(result.stderr)
 
 >>> ''
 ```
@@ -316,3 +318,99 @@ result.stderr
 ### Long-Running Fuzzing
 
 이제 테스트한 프로그램에 많은 수의 입력을 제공하여 프로그램이 충돌하는지 여부를 확인합시다. runs 변수는 모든 결과를 입력 데이터와 실제 결과의 쌍으로 저장합니다. (참고: 이 작업을 실행한느 데 시간이 걸릴 수 있습니다.)
+
+```python
+trials = 100
+program = "bc"
+
+runs = []
+
+for i in range(trials):
+    data = fuzzer()
+    with open(FILE, "w") as f:
+        f.write(data)
+    result = subprocess.run([program, FILE],
+                            stdin=subprocess.DEVNULL,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            universal_newlines=True)
+    runs.append((data, result))
+```
+
+<span style="color: red">
+이제 일부 통계에 대한 런을 쿼리할 수 있습니다.예를 들어, 실제로 통과된 실행 수를 쿼리할 수 있습니다. 즉, 오류 메시지가 없습니다.여기서는 목록 이해를 사용합니다. 조건이 참인 경우 목록의 요소 양식 식은 각 요소가 목록에서 가져온 계산된 식 목록을 반환합니다.(실제로 목록 이해는 목록 생성기를 반환하지만, 우리의 목적을 위해 생성기는 목록처럼 작동합니다.)여기에서는 조건이 유지되는 모든 요소에 대해 1이라는 식을 가지고 있으며, 목록의 모든 요소를 합하기 위해 sum()을 사용합니다.
+</span>
+
+```python
+sum(1 for (data, result) in runs if result.stderr == "")
+
+>>> 6
+```
+
+대부분의 입력은 유효하지 않으며, 무작위 입력에 유효한 산술 식이 포함될 가능성이 낮기 때문에 크게 놀랄 일은 아닙니다.
+
+첫 번째 에러 메시지를 봐봅시다.
+
+```python
+errors = [(data, result) for (data, result) in runs if result.stderr != ""]
+(first_data, first_result) = errors[0]
+
+print(repr(first_data))
+print(first_result.stderr)
+```
+
+```python
+'47&&,/8/\'(9-(!#%.7%7=+%0((<!2=>*=,7(>?67$1" ?668>&97(>\'0! 1=01 $;\'050 !.#;;\'2&= ?\'8'
+/tmp/tmpfw0cxb3p/input.txt 1: syntax error
+/tmp/tmpfw0cxb3p/input.txt 1: illegal character: '
+(standard_in) 1: syntax error
+```
+
+잘못된 문자, 구문 분석 오류 또는 구문 오류 이외의 메시지가 포함된 실행이 있습니까? (예를 들어, 충돌이나 치명적인 버그를 발견했는가?) 많지 않음:
+
+```
+errors = [result.stderr for (data, result) in runs if
+ result.stderr != ""
+ and "illegal character" not in result.stderr
+ and "parse error" not in result.stderr
+ and "syntax error" not in result.stderr]
+
+ print(errors)
+
+
+ >>> []
+ ```
+
+아마도 충돌은 bc가 그냥 충돌하는 것으로 나타날 것입니다.안타깝게도 반환 코드는 0이 아닙니다.
+
+```python
+result = sum(1 for (data, result) in runs if result.returncode != 0)
+print(result)
+
+>>> 0
+```
+
+위의 bc 테스트를 좀 더 진행하면 어떨까요? 테스트가 진행되는 동안, 1989년의 최첨단 기술이 어땠는지 살펴봅시다.
+
+#
+
+## Bugs Fuzzers Find
+
+1989년 Miller와 그의 학생들이 첫 퍼저를 실행했을 때 놀라운 결과를 얻었습니다. 퍼징한 UNIX 유틸리티의 약 3분의 1이 문제가 있었습니다. 퍼징 입력이 들어갔을 때 충돌, 중단 또는 실패가 발생했다는 것입니다. [Miller et al, 여기에는 위의 bc 프로그램도 포함되어 있습니다. (분명히, 이제 버그가 수정되었습니다!)
+
+이러한 UNIX 유틸리티 중 많은 부분이 네트워크 입력을 처리하는 스크립트에 사용되었음을 고려하면, 이는 놀라운 결과였습니다. 프로그래머들은 신속하게 자체 퍼저를 구축하고 실행했으며, 보고된 오류를 수정하기 위해 서둘렀고, 더 이상 외부 입력을 신뢰하지 않는 것을 배웠습니다.
+
+밀러의 실험 결과 어떤 문제가 발견되었나요? 프로그래머들이 1990년에 저지른 실수는 오늘날에도 여전히 같은 실수라는 것이 밝혀졌습니다.
+
+#
+
+### Buffer Overflows
+
+많은 프로그램에는 입력 및 입력 요소에 대한 최대 길이가 내장되어 있습니다. C와 같은 언어에서는 프로그램(또는 프로그래머)이 눈치채지 못하게 이 길이를 초과하기 쉬우며, 이른바 버퍼 오버플로(buffer overflow)를 유발합니다. 예를 들어, 다음 코드는 입력이 8자를 초과하더라도 입력 문자열을 weekday 문자열로 복사합니다.
+
+```c
+char weekday[9]; // 8 characters + trailing '\0' terminator
+strcpy (weekday, input);
+```
+
+아이러니하게도, 입력이 "Wednesday"(9자)이면 이 작업은 실패합니다. 초과 문자('y'와 '\0' 문자열 종결자)는 weekday 이후 메모리 공간으로 복사되어 임의 동작을 트리거합니다. <span style아마도 'n'에서 'y'로 설정된 부울 문자 변수일 수 있습니다.퍼징을 사용하면 임의의 긴 입력 및 입력 요소를 매우 쉽게 생성할 수 있습니다.
