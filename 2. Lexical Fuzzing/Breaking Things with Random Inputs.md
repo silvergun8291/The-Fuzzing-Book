@@ -195,7 +195,7 @@ print(fuzz)
 
 #
 
-## Creating Input Files
+### Creating Input Files
 
 파일 시스템을 흐트러뜨리지 않도록 임시 파일 이름을 얻읍시다.
 
@@ -337,7 +337,7 @@ for i in range(trials):
     runs.append((data, result))
 ```
 
-<span style="color: red">
+<span style="background-color: purple">
 이제 일부 통계에 대한 런을 쿼리할 수 있습니다.예를 들어, 실제로 통과된 실행 수를 쿼리할 수 있습니다. 즉, 오류 메시지가 없습니다.여기서는 목록 이해를 사용합니다. 조건이 참인 경우 목록의 요소 양식 식은 각 요소가 목록에서 가져온 계산된 식 목록을 반환합니다.(실제로 목록 이해는 목록 생성기를 반환하지만, 우리의 목적을 위해 생성기는 목록처럼 작동합니다.)여기에서는 조건이 유지되는 모든 요소에 대해 1이라는 식을 가지고 있으며, 목록의 모든 요소를 합하기 위해 sum()을 사용합니다.
 </span>
 
@@ -413,4 +413,505 @@ char weekday[9]; // 8 characters + trailing '\0' terminator
 strcpy (weekday, input);
 ```
 
-아이러니하게도, 입력이 "Wednesday"(9자)이면 이 작업은 실패합니다. 초과 문자('y'와 '\0' 문자열 종결자)는 weekday 이후 메모리 공간으로 복사되어 임의 동작을 트리거합니다. <span style아마도 'n'에서 'y'로 설정된 부울 문자 변수일 수 있습니다.퍼징을 사용하면 임의의 긴 입력 및 입력 요소를 매우 쉽게 생성할 수 있습니다.
+아이러니하게도, 입력이 "Wednesday"(9자)이면 이 작업은 실패합니다. 초과 문자('y'와 '\0' 문자열 종결자)는 weekday 이후 메모리 공간으로 복사되어 임의 동작을 트리거합니다. <span style="background-color: purple">아마도 'n'에서 'y'로 설정된 부울 문자 변수일 수 있습니다.</span>퍼징을 사용하면 임의의 긴 입력 및 입력 요소를 매우 쉽게 생성할 수 있습니다.
+
+우리는 파이썬 함수로 버퍼 오버플로우를 쉽게 시뮬레이션 할 수 있습니다.
+
+```python
+def crash_if_too_long(s):
+    buffer = "Thursday"
+    if len(s) > len(buffer):
+        raise ValueError
+```
+
+```python
+from fuzzingbook.ExpectError import ExpectError
+```
+
+```python
+trials = 100
+with ExpectError():
+    for i in range(trials):
+        s = fuzzer()
+        crash_if_too_long(s)
+```
+
+```python
+Traceback (most recent call last):
+  File "c:\Users\Python\hello.py", line 24, in <module>
+    crash_if_too_long(s)
+  File "c:\Users\Python\hello.py", line 17, in crash_if_too_long
+    raise ValueError
+ValueError (expected)
+```
+
+위의 코드에 있는 **ExpectError()** 행은 오류 메시지가 출력되지만 실행은 계속된다는 것을 보장합니다.
+
+#
+
+### Missing Error Checks
+
+많은 프로그래밍 언어들은 예외가 없지만, 대신 함수가 예외적인 상황에서 특별한 **오류 코드**를 반환합니다.예를 들어, C언어 함수 **getchar()**는 일반적으로 표준 입력으로부터 문자를 반환합니다. 입력이 없다면 **EOF**를 반환합니다. 이제 프로그래머가 공백 문자를 읽을 때까지 getchar()로 문자를 읽는다고 가정해봅시다.
+
+```c
+while (getchar() != ' ');
+```
+
+입력이 조기에 종료되면 어떻게 될까요? **getchar()**는 **EOF**를 반환하고, 다시 호출할 때 **EOF**를 계속 반환하므로 위의 코드는 단순히 무한 루프에 들어갑니다.
+
+다시, 우리는 그러한 누락된 오류 검사를 시뮬레이션할 수 있습니다. 입력에 공백이 없을 경우 효과적으로 정지되는 함수는 다음과 같습니다.
+
+```python
+def hang_if_no_space(s):
+    i = 0
+    while True:
+        if i < len(s):
+            if s[i] == ' ':
+                break
+        i += 1
+```
+
+Introduction to Testing의 timeout 메커니즘을 사용하면 시간이 지난후 이 함수를 중단시킬 수 있습니다. 몇 번의 퍼징 입력을 넣으면 TimeoutError 메시지를 출력하고 함수를 중단시키게 됩니다.
+
+```python
+from fuzzingbook.ExpectError import ExpectTimeout
+```
+
+```python
+trials = 100
+with ExpectTimeout(2):
+    for i in range(trials):
+        s = fuzzer()
+        hang_if_no_space(s)
+```
+
+```python
+Traceback (most recent call last):
+  File "c:\Users\Python\Python\hello.py", line 34, in <module>
+    hang_if_no_space(s)
+  File "c:\Users\Python\Python\hello.py", line 23, in hang_if_no_space
+    while True:
+  File "c:\Users\Python\Python\hello.py", line 23, in hang_if_no_space
+    while True:
+  File "C:\Users\AppData\Local\Programs\Python\Python310\lib\site-packages\fuzzingbook\Timeout.py", line 191, in check_time
+    raise TimeoutError
+TimeoutError (expected)
+```
+
+위 코드의 **with ExpectTimeout()** 행은 코드 실행을 2초 후에 중단하고 오류 메시지가 출력되도록 합니다.
+
+
+#
+
+
+### Rogue Numbers
+
+퍼징을 사용하면 입력에서 **일반적이지 않은 값**을 생성하여 모든 종류의 흥미로운 동작을 유발하기 쉽습니다. 다음 코드를 C 언어로 다시 생각해 보십시오. 이 코드는 먼저 입력에서 버퍼 크기를 읽은 다음 지정된 크기의 버퍼를 할당합니다.
+
+```c
+char *read_input() {
+    size_t size = read_buffer_size();
+    char *buffer = (char *)malloc(size);
+    // fill buffer
+    return (buffer);
+}
+```
+
+**크기**가 프로그램 메모리를 초과하여 매우 크면 어떻게 될까요? **크기**가 입력으로 들어오는 문자 수보다 적으면 어떻게 될까요? **크기**가 음수이면 어떻게 될까요? 여기에 난수를 제공함으로써, 퍼징은 모든 종류의 오류를 발생시킬 수 있습니다.
+
+다시 말하지만, 우리는 파이썬에서 저러한 악의적인 숫자를 쉽게 시뮬레이션할 수 있습니다. 정수로 변환된 후 전달된 값(문자열)이 너무 크면 **collapse_if_too_large()** 함수는 실행에 실패할 것입니다.
+
+```python
+def collapse_if_too_large(s):
+    if int(s) > 1000:
+        raise ValueError
+```
+
+우리는 **fuzzer()**가 숫자 문자열을 생성하도록 할 수 있습니다.
+
+```python
+long_number = fuzzer(100, ord('0'), 10)
+print(long_number)
+
+>>> 75796082745267671405786577704870880086215805248523282954251610864940357086645564
+```
+
+만약 우리가 저런 숫자들을 **collapse_if_too_large()** 함수의 인자로 넣으면, 함수는 실행에 실패하여 오류 메시지를 출력할 것입니다.
+
+```python
+with ExpectError():
+    collapse_if_too_large(long_number)
+```
+
+```python
+Traceback (most recent call last):
+  File "c:\Users\Python\hello.py", line 45, in <module>
+    collapse_if_too_large(long_number)
+  File "c:\Users\Python\hello.py", line 39, in collapse_if_too_large
+    raise ValueError
+ValueError (expected)
+```
+
+만약 우리가 정말로 시스템에 그렇게 많은 메모리를 할당하고 싶다면, 실제로 위와 같이 빠르게 실패하도록 하는 것이 더 나은 선택일 것입니다. 실제로 메모리 부족으로 인해 시스템이 완전히 반응하지 않을 정도로 속도가 급격히 느려질 수 있으며, 재시작만이 유일한 옵션이 될 수도 있습니다.
+
+누군가는 이것이 모두 나쁜 프로그래밍 또는 나쁜 프로그래밍 언어의 문제라고 주장할 수 있습니다. 하지만, 매일 수천명의 사람들이 프로그램을 짜기 시작하고, 그들은 모두는 같은 실수를 반복하고, 심지어 오늘날에도 이러한 오류들은 계속 발생합니다.
+
+
+#
+
+
+## Catching Errors
+
+Miller와 그의 학생들이 첫 번째 퍼저를 만들었을 때, 그들은 단순히 프로그램이 중단되거나 중단된다는 이유만으로 오류를 식별할 수 있었습니다. 위 두 가지 조건은 쉽게 식별할 수 있었습니다. 하지만 실패가 더 미묘하다면, 우리는 추가적인 점검을 해야 합니다.
+
+#
+
+
+### Generic Checkers
+
+위에서 설명한 바와 같이 버퍼 오버플로우는 보다 일반적인 문제의 특정 예입니다. C 및 C++와 같은 언어에서 프로그램은 메모리의 임의 부분(초기화되지 않았거나 이미 해제되었거나 단순히 접근하려는 데이터 구조의 일부가 아닌 부분)에 접근할 수 있습니다. 운영 체제를 작성하려는 경우 이 작업이 필요하며, 최대 성능이나 제어 능력을 원하는 경우 매우 유용합니다. 하지만 실수를 방지하기에는 매우 좋지 않습니다. 다행히 런타임에 이러한 문제를 해결하는 데 도움이 되는 도구가 있으며, 퍼징과 결합하면 매우 좋습니다.
+
+#
+
+
+**Checking Memory Accesses**
+
+테스트하는 동안 문제가 있는 메모리 접근을 포착하기 위해 특별한 메모리 검사 환경에서 C 프로그램을 실행할 수 있습니다. 실행 시 이러한 프로그램은 유효하고 초기화된 메모리에 액세스하는지 여부를 검사합니다. 가장 일반적인 예는 잠재적으로 위험한 메모리 안전 위반을 탐지하는 LLVM Address Santizer입니다. 다음 예제에서는 이 도구를 사용하여 다소 간단한 C 프로그램을 컴파일하고 할당된 메모리 부분을 읽음으로써 범위를 벗어난 읽기를 유발합니다.
+
+```python
+with open("program.c", "w") as f:
+    f.write("""
+#include <stdlib.h>
+#include <string.h>
+
+int main(int argc, char** argv) {
+    /* Create an array with 100 bytes, initialized with 42 */
+    char *buf = malloc(100);
+    memset(buf, 42, 100);
+
+    /* Read the N-th element, with N being the first command-line argument */
+    int index = atoi(argv[1]);
+    char val = buf[index];
+
+    /* Clean up memory so we don't leak */
+    free(buf);
+    return val;
+}
+    """)
+```
+
+```python
+from bookutils import print_file
+```
+
+```python
+print_file("program.c")
+```
+
+```c
+#include <stdlib.h>
+#include <string.h>
+
+int main(int argc, char** argv) {
+    /* Create an array with 100 bytes, initialized with 42 */
+    char *buf = malloc(100);
+    memset(buf, 42, 100);
+
+    /* Read the N-th element, with N being the first command-line argument */
+    int index = atoi(argv[1]);
+    char val = buf[index];
+
+    /* Clean up memory so we don't leak */
+    free(buf);
+    return val;
+}
+```
+
+우리는 C 프로그램을 address sanitization가 활성화된 상태에서 컴파일 합니다.
+
+```
+!clang -fsanitize=address -g -o program program.c
+```
+
+인수가 **99**인 프로그램을 실행하면 **buff[99]**가 반환되는데, 이는 42입니다.
+
+```bash
+./program 99; echo $?
+
+>>> 42
+```
+
+그러나 **buf[110]**에 접근하면 AddressSanitizer에서 Out-of-bounds 오류가 발생합니다.
+
+```bash
+./program 110
+```
+
+```bash
+=================================================================
+==653==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x60b00000015e at pc 0x00000051219e bp 0x7ffe8606eab0 sp 0x7ffe8606eaa8
+READ of size 1 at 0x60b00000015e thread T0
+    #0 0x51219d  (/home/ion/fuzzingbook/program+0x51219d)
+    #1 0x7f499695dc86  (/lib/x86_64-linux-gnu/libc.so.6+0x21c86)
+    #2 0x419d19  (/home/ion/fuzzingbook/program+0x419d19)
+
+0x60b00000015e is located 10 bytes to the right of 100-byte region [0x60b0000000f0,0x60b000000154)
+allocated by thread T0 here:
+    #0 0x4d9bd0  (/home/ion/fuzzingbook/program+0x4d9bd0)
+    #1 0x512104  (/home/ion/fuzzingbook/program+0x512104)
+    #2 0x7f499695dc86  (/lib/x86_64-linux-gnu/libc.so.6+0x21c86)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/home/ion/fuzzingbook/program+0x51219d)
+Shadow bytes around the buggy address:
+  0x0c167fff7fd0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0c167fff7fe0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0c167fff7ff0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x0c167fff8000: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x0c167fff8010: fd fd fd fd fd fa fa fa fa fa fa fa fa fa 00 00
+=>0x0c167fff8020: 00 00 00 00 00 00 00 00 00 00 04[fa]fa fa fa fa
+  0x0c167fff8030: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0c167fff8040: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0c167fff8050: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0c167fff8060: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0c167fff8070: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==653==ABORTING
+```
+
+만약 당신이 C 프로그램에서 오류를 찾고 싶다면, 퍼징에 대한 검사를 켜는 것은 꽤 쉽습니다. 툴(AddressSanitizer의 경우 일반적으로 2X)에 따라 실행 속도가 일정하게 느려지고 메모리도 더 많이 소모되지만 이러한 버그를 찾는 데 필요한 인간의 노력에 비해 CPU 사이클은 매우 저렴합니다.
+
+메모리에 대한 범위를 벗어나는 접근은 공격자가 의도하지 않은 정보에 접근하거나 수정할 수 있기 때문에 보안 위험이 큽니다. 유명한 예로, HeartBleed 버그는 OpenSSL 라이브러리의 보안 버그입니다.
+(**OpenSSL**: 컴퓨터 네트워크를 통한 통신 보안을 제공하는 암호화 프로토콜)
+
+HeartBleed 버그는 특수하게 조작된 명령을 SSL 하트비트 서비스에 전송하여 익스플로잇을 합니다. 하트비트 서비스는 다른 쪽 끝에 있는 서버가 여전히 활성 상태인지 확인하는 데 사용됩니다. 클라이언트는 서비스를 다음과 같은 문자열로 보냅니다.
+
+```bash
+문자열 (문자열 길이)
+BIRD (4 letters)
+```
+
+서버가 BIRD로 응답하면 클라이언트는 서버가 활성 상태임을 알 수 있습니다.
+
+안타깝게도 서버가 요청한 문자열보다 많은 문자로 회신하도록 요청하여 이 서비스를 익스플로잇 할 수 있습니다. 이것은 이 XKCD 만화에 잘 설명되어 있다.
+
+![comic1](https://velog.velcdn.com/images/silvergun8291/post/cb548b0d-91f8-44f8-8d7d-1ae56947e2a8/image.png)
+
+![comic2](https://velog.velcdn.com/images/silvergun8291/post/36dd5142-bda3-44f2-991e-661709095593/image.png)
+
+![comic3](https://velog.velcdn.com/images/silvergun8291/post/aed9f17f-84dc-4cf2-8598-aed1c579804a/image.png)
+
+OpenSSL 구현에서는 이러한 메모리 컨텐츠에 암호화 인증서, 개인 키 등이 포함될 수 있으며, 더 나쁜 것은 이 메모리가 방금 액세스되었다는 사실을 아무도 눈치채지 못할 것이라는 점입니다. HeartBleed가 발견되었을 때, 그것은 수년 동안 존재해 왔고, 아무도 이미 어떤 비밀이 유출되었는지와 어떤 것이 이미 유출되었는지 알 수 없을 것입니다; HeartBleed 발표 페이지에서 모든 것을 말해줍니다.
+
+하지만 HeartBleed는 어떻게 발견되었을까요? 아주 간단합니다. 구글과 코데노미콘 회사의 연구원들은 memory sanitizer로 OpenSSL 라이브러리를 컴파일하고 퍼저로 생성한 명령어들로 테스트 했습니다. 그러자 memory sanitizer는 out-of-bounds 에러가 발생했다고 알려줬습니다.
+
+메모리 검사기는 퍼징 테스트를 하는 동안 런타임 오류를 감지하기 위해 실행할 수 있는 많은 검사기 중 하나입니다. mining function specifications 챕터에서 generic checker를 정의하는 방법에 대해 자세히 알아보겠습니다.
+
+프로그램이 종료되었으므로 **program** 파일을 정리합시다.
+
+```bash
+rm -fr program program.*
+```
+
+
+#
+
+**Information Leaks**
+
+정보 누수는 불법 메모리 액세스를 통해 발생할 수 있을 뿐만 아니라 "유효한" 메모리 내에서 발생할 수 있습니다. 이 "유효한" 메모리에 누출되지 않아야 하는 중요한 정보가 포함되어 있는 경우입니다. 이 문제를 Python 프로그램에서 설명하겠습니다. 먼저 실제 데이터와 랜덤 데이터로 채워진 프로그램 메모리를 생성해 보겠습니다.
+
+```python
+secrets = ("<space for reply>" + fuzzer(100) +
+           "<secret-certificate>" + fuzzer(100) +
+           "<secret-key>" + fuzzer(100) + "<other-secrets>")
+```
+
+uninitialized_memory_marker에 "deadbeef"를 대입하고 secrets 문자열에 이어 붙입니다.
+
+```python
+uninitialized_memory_marker = "deadbeef"
+while len(secrets) < 2048:
+    secrets += uninitialized_memory_marker
+```
+
+길이뿐만 아니라 응답을 다시 보낼 수 있는 서비스(위에서 설명한 하트비트 서비스와 유사)를 정의합니다. 이 서비스는 전송할 응답을 메모리에 저장한 다음 지정된 길이로 다시 전송합니다.
+
+```python
+def heartbeat(reply: str, length: int, memory: str) -> str:
+    # Store reply in memory
+    memory = reply + memory[len(reply):]
+
+    # Send back heartbeat
+    s = ""
+    for i in range(length):
+        s += memory[i]
+    return s
+```
+
+이것은 표준 문자열에 완벽하게 적용됩니다.
+
+```python
+reply = heartbeat("potato", 6, memory=secrets)
+print(reply)
+
+>>> potato
+```
+
+```python
+reply = heartbeat("bird", 4, memory=secrets)
+print(reply)
+
+>>> bird
+```
+
+그러나 길이가 응답 문자열의 길이보다 크면 메모리의 추가 내용이 유출됩니다. 이 모든 것은 여전히 정규 배열 범위 내에서 발생하므로 address sanitizer가 작동하지 않습니다.
+
+```python
+reply = heartbeat("hat", 500, memory=secrets)
+print(reply)
+```
+
+```python
+hatace for reply>!7#%"*#0=)$;%6*;>638:*>80"=</>(/*:-(2<4 !:5*6856&?""11<7+%<%7,4.8,*+&,,$,."<secret-certificate>5%<%76< -5 7:,>((/$$-/->.;.=;(.%!:50#7*8=$&&=$9!%6(4=&69':'<3+0-3.24#7=!&60)2/+";+<7+1<2!4$>92+$1<(3<secret-key>&5''>#28($<other-secrets>deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdea
+```
+
+어떻게 하면 그런 문제들을 감지할 수 있을까요? 아이디어는 secrets 처럼 유출 되면 안될 정보 뿐만 아니라 초기화 되지 않은 메모리도 식별하자는 것입니다. Python 예제에서 이러한 검사를 시뮬레이션할 수 있습니다.
+
+```python
+from fuzzingbook.ExpectError import ExpectError
+```
+
+```python
+with ExpectError():
+    for i in range(10):
+        s = heartbeat(fuzzer(), random.randint(1, 500), memory=secrets)
+        assert not s.find(uninitialized_memory_marker)
+        assert not s.find("secret")
+```
+
+```python
+Traceback (most recent call last):
+  File "c:\Users\The Fuzzing Book\Code\fuzzingbook\hello.py", line 40, in <module>
+    assert not s.find(uninitialized_memory_marker)
+AssertionError (expected)
+```
+
+이러한 검사를 통해 우리는 secrets 및/또는 uninitialized memory가 실제로 유출된다는 것을 알게 되었습니다. information flow 챕터에서, 이를 자동으로 수행하는 방법과 민감한 정보와 그로부터 도출된 값이 새어나가지 않도록 하는 방법에 대해 배웁니다.
+
+경험에 비추어 볼 때, 퍼징 테스트를 하는 동안에는 가능한 많은 자동 검사기를 활성화 해야 합니다. CPU 사이클은 저렴하고 오류는 비쌉니다. 실제로 오류를 감지하는 옵션 없이 프로그램만 실행하면 몇 가지 기회를 놓치게 됩니다.
+
+
+#
+
+
+### Program-Specific Checkers
+
+지정된 플랫폼 또는 언어의 모든 프로그램에 적용되는 일반 검사기 외에도 프로그램 또는 하위 시스템에 적용되는 특정 검사기를 고안할 수 있습니다. testing 챕터에서 이미 런타임에 함수 결과가 정확한지 확인하는 런타임 검증 기술을 암시했습니다.
+
+오류를 조기에 발견하기 위한 핵심 아이디어는 중요한 함수의 입력(전제 조건)과 결과(후제 조건)를 확인하는 assert 문입니다. 특히 퍼징 테스트를 하는 동안에 프로그램에 assert 문이 많을수록 일반 검사기에 의해 탐지되지 않는 오류를 실행 중에 탐지할 가능성이 높아집니다. 성능에 대한 assert 문의 영향을 우려하는 경우 프로덕션 코드에서 assert 문을 제거할 수 있습니다 (가장 중요한 검사를 활성 상태로 두는 것이 도움이 될 수 있음).
+
+오류를 찾기 위한 assert 문의 가장 중요한 사용 방법 중 하나는 복잡한 데이터 구조의 무결성을 검증하는 것입니다. 간단한 예를 들어 개념을 설명하겠습니다. airport_codes를 공항과 매핑한다고 가정해 보겠습니다.
+
+```python
+airport_codes: Dict[str, str] = {
+    "YVR": "Vancouver",
+    "JFK": "New York-JFK",
+    "CDG": "Paris-Charles de Gaulle",
+    "CAI": "Cairo",
+    "LED": "St. Petersburg",
+    "PEK": "Beijing",
+    "HND": "Tokyo-Haneda",
+    "AKL": "Auckland"
+}  # plus many more
+```
+
+```python
+airport = airport_codes["YVR"]
+print(airport)
+
+>>> Vancouver
+```
+
+```
+result = "AKL" in airport_codes
+print(result)
+
+>>> True
+```
+
+이 airport code 리스트는 매우 중요할 수 있습니다. 공항 코드 중 하나에서 맞춤법이 틀린 경우 어떤 응용 프로그램이든 영향을 미칠 수 있습니다. 따라서 리스트의 일관성을 확인하는 기능을 도입합니다. 일관성 조건을 representation invariant이라고 하며, 이를 확인하는 함수(또는 메소드)는 일반적으로 the representation is ok이라는 뜻의 **repOK()**로 명명됩니다.
+
+
+
+#
+
+
+### Static Code Checkers
+
+
+#
+
+
+## A Fuzzing Architecture
+
+
+#
+
+### Runner Classes
+
+
+#
+
+
+### Fuzzer Classes
+
+
+#
+
+
+## Lessons Learned
+
+*
+*
+*
+
+---
+
+#
+
+## Exercises
+
+
+#
+
+
+### Exercise 1: Simulate Troff
+
+
+#
+
+
+### Exercise 2: Run Simulated Troff
+
+
+#
+
+
+### Exercise 3: Run Real Troff
