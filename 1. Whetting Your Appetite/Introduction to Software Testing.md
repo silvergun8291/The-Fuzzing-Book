@@ -282,7 +282,7 @@ print(my_sqrt_checked(2.0))
 .  런타임 검사가 항상 올바른 결과가 나올 것이라고 보장합니까?
 
 1. Yes
-1. No
+2. No
 #
 
 ## System Input vs Function Input
