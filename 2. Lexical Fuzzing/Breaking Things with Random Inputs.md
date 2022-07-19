@@ -284,7 +284,7 @@ result.stderr
 #
 
 **_Quiz_**
-.  재미삼아 파일 제거 프로그램(예: **rm -rf FILE**)을 테스트한다고 상상해 보십시오. 여기서 **FILE**은 **fuzzer()**에 의해 생성된 문자열입니다. **fuzzer()** (기본 인수 포함)가 **FILE** 인수를 생성하여 모든 파일을 삭제할 가능성은 얼마나 됩니까?
+.  재미삼아 파일 제거 프로그램(예: **rm -rf FILE**)을 테스트한다고 상상해 보십시오. 여기서 **FILE**은 fuzzer()에 의해 생성된 문자열입니다. **fuzzer()** (기본 인수 포함)가 **FILE** 인수를 생성하여 모든 파일을 삭제할 가능성은 얼마나 됩니까?
 
 1. About one in a billion
 2. About one in a million
