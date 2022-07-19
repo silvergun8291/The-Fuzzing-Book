@@ -94,7 +94,7 @@ EQYGAXPTVPJGTYHXFJ
  'PASS')
  ```
  
-[diagram2](https://velog.velcdn.com/images/silvergun8291/post/480dc1c6-2f25-4dda-a6e9-4cc7e2680a88/image.JPG)
+![diagram2](https://velog.velcdn.com/images/silvergun8291/post/480dc1c6-2f25-4dda-a6e9-4cc7e2680a88/image.JPG)
 
 #
 
