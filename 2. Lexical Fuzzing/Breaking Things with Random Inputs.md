@@ -832,6 +832,10 @@ AssertionError (expected)
 오류를 찾기 위한 assert 문의 가장 중요한 사용 방법 중 하나는 복잡한 데이터 구조의 무결성을 검증하는 것입니다. 간단한 예를 들어 개념을 설명하겠습니다. airport_codes를 공항과 매핑한다고 가정해 보겠습니다.
 
 ```python
+from typing import Dict
+```
+
+```python
 airport_codes: Dict[str, str] = {
     "YVR": "Vancouver",
     "JFK": "New York-JFK",
@@ -860,29 +864,424 @@ print(result)
 
 이 airport code 리스트는 매우 중요할 수 있습니다. 공항 코드 중 하나에서 맞춤법이 틀린 경우 어떤 응용 프로그램이든 영향을 미칠 수 있습니다. 따라서 리스트의 일관성을 확인하는 기능을 도입합니다. 일관성 조건을 representation invariant이라고 하며, 이를 확인하는 함수(또는 메소드)는 일반적으로 the representation is ok이라는 뜻의 repOK()로 명명됩니다.
 
+우선 개별 공항 코드를 검사해 봅시다. 코드가 일치하지 않으면 검사기가 실패합니다.
 
+```python
+def code_repOK(code: str) -> bool:
+    assert len(code) == 3, "Airport code must have three characters: " + repr(code)
+    for c in code:
+        assert c.isalpha(), "Non-letter in airport code: " + repr(code)
+        assert c.isupper(), "Lowercase letter in airport code: " + repr(code)
+    return True
+```
+
+```python
+assert code_repOK("SEA")
+```
+
+이제 **code_repOK()**를 사용하여 리스트의 모든 요소를 확인할 수 있습니다.
+
+```python
+def airport_codes_repOK():
+    for code in airport_codes:
+        assert code_repOK(code)
+    return True
+```
+
+```python
+with ExpectError():
+    assert airport_codes_repOK()
+```
+
+목록에 잘못된 요소를 추가하면 검사가 실패합니다.
+
+```python
+airport_codes["YMML"] = "Melbourne"
+```
+
+```python
+with ExpectError():
+    assert airport_codes_repOK()
+```
+
+```python
+Traceback (most recent call last):
+  File "c:\Users/The Fuzzing Book\Code\fuzzingbook\hello.py", line 45, in <module>
+    assert airport_codes_repOK()
+  File "c:\Users\The Fuzzing Book\Code\fuzzingbook\hello.py", line 38, in airport_codes_repOK
+    assert code_repOK(code)
+  File "c:\Users\The Fuzzing Book\Code\fuzzingbook\hello.py", line 29, in code_repOK
+    assert len(code) == 3, "Airport code must have three characters: " + repr(code)
+AssertionError: Airport code must have three characters: 'YMML' (expected)
+```
+
+물론 리스트를 직접 조작하는 대신 요소를 추가하는 특별한 기능이 있습니다. 그러면 코드가 유효한지도 확인할 수 있습니다:
+
+```python
+def add_new_airport(code: str, city: str) -> None:
+    assert code_repOK(code)
+    airport_codes[code] = city
+```
+
+```python
+with ExpectError():  # For BER, ExpectTimeout would be more appropriate
+    add_new_airport("BER", "Berlin")
+```
+
+또한 이 검사를 통해 인수 리스트에서 오류를 찾을 수 있습니다.
+
+```python
+with ExpectError():
+    add_new_airport("London-Heathrow", "LHR")
+```
+
+```python
+Traceback (most recent call last):
+  File "c:\Users\The Fuzzing Book\Code\fuzzingbook\hello.py", line 48, in <module>
+    add_new_airport("London-Heathrow", "LHR")
+  File "c:\Users\The Fuzzing Book\Code\fuzzingbook\hello.py", line 43, in add_new_airport
+    assert code_repOK(code)
+  File "c:\Users\The Fuzzing Book\Code\fuzzingbook\hello.py", line 29, in code_repOK
+    assert len(code) == 3, "Airport code must have three characters: " + repr(code)
+AssertionError: Airport code must have three characters: 'London-Heathrow' (expected)
+```
+
+그러나 최대 점검을 위해 **add_new_airport()** 기능을 사용하면 공항 코드 리스트를 변경 전후에 정확하게 표시할 수 있습니다.
+
+```python
+def add_new_airport_2(code: str, city: str) -> None:
+    assert code_repOK(code)
+    assert airport_codes_repOK()
+    airport_codes[code] = city
+    assert airport_codes_repOK()
+```
+
+<span style="background-color: purple">
+이는 앞에서 설명한 불일치를 포착합니다.
+</span>
+
+```python
+with ExpectError():
+    add_new_airport_2("IST", "Istanbul Yeni Havalimanı")
+```
+
+코드에 **repOK()** assert 문이 많을수록 더 많은 오류를 발견할 수 있으며, 너의 영역과 문제에만 국한된 것들도 마찬가지 입니다. 또한 이러한 assert 문은 프로그래밍 중에 사용자가 만든 assert 문을 문서화하여 다른 프로그래머가 코드를 이해하고 오류를 방지하는 데 도움이 됩니다.
+
+마지막 예로, 레드-블랙 트리, 셀프 밸런싱 이진 검색 트리 등 다소 복잡한 데이터 구조를 고려해 보겠습니다. 레드-블랙 트리를 구현하는 것은 그리 어렵지 않지만, 그것을 정확하게 하는 것은 숙련된 프로그래머에게도 몇 시간의 작업이 될 수 있습니다. 그러나 **rePOK()** 방법은 모든 가정을 문서화하고 검사합니다.
+
+```python
+class RedBlackTree:
+    def repOK(self):
+        assert self.rootHasNoParent()
+        assert self.rootIsBlack()
+        assert self.rootNodesHaveOnlyBlackChildren()
+        assert self.treeIsAcyclic()
+        assert self.parentsAreConsistent()
+        return True
+
+    def rootIsBlack(self):
+        if self.parent is None:
+            assert self.color == BLACK
+        return True
+
+    def add_element(self, elem):
+        assert self.repOK()
+        ...  # Add the element
+        assert self.repOK()
+
+    def delete_element(self, elem):
+        assert self.repOK()
+        ...  # Delete the element
+        assert self.repOK()
+```
+
+여기서 **repOK()**는 **RedBlackTree** 클래스의 개체에서 실행되는 메서드입니다. 그것은 다섯 가지 다른 검사를 실행하는데, 모두 자신만의 assert 문을 가지고 있습니다. 요소를 추가하거나 삭제할 때마다 이러한 모든 일관성 검사가 자동으로 실행됩니다. 물론 충분히 많은 퍼저에 의해 생성된 입력을 통해 트리를 실행하면 이러한 오류가 있는 경우 검사기가 오류를 찾습니다.
 
 #
 
 
 ### Static Code Checkers
 
+**repOK()** assert 문의 많은 이점은 코드에서 정적 형식 체커를 사용하여 얻을 수도 있습니다. 예를 들어 파이썬에서 MyPy 정적 검사기는 인수의 유형이 적절하게 선언되는 즉시 유형 오류를 찾을 수 있습니다.
+
+```bash
+# MyPy 설치
+python3 -m pip install -U mypy
+```
+
+```python
+typed_airport_codes: Dict[str, str] = {
+    "YVR": "Vancouver",  # etc
+}
+```
+
+이제 문자열이 아닌 유형의 키를 추가하는 경우
+
+```python
+typed_airport_codes[1] = "First"
+```
+
+이 오류는 MyPy에서 즉시 확인할 수 있습니다.
+
+```bash
+$ mypy airports.py
+airports.py:45: error: Invalid index type "int" for "Dict[str, str]"; expected type "str"
+Found 1 error in 1 file (checked 1 source file)
+```
+
+그러나 정확히 세 개의 대문자로 구성된 공항 코드나 트리가 비순환적인 것과 같은 더 고급 속성을 정적으로 확인하는 것은 정적인 체킹의 한계에 빠르게 도달합니다. 하지만 **repOK()** assert 문은 여전히 필요합니다. 좋은 테스트 생성기와 함께 사용하는 것이 가장 좋습니다.
 
 #
 
 
 ## A Fuzzing Architecture
 
+다음 장에서 이 장의 일부를 재사용하고자 하므로, 재사용하기 쉽고, 특히 확장하기 쉬운 방식으로 정의해 보겠습니다. 이를 위해 위의 기능을 재사용 가능한 방식으로 캡슐화하는 여러 클래스를 소개합니다.
 
 #
 
 ### Runner Classes
 
+첫 번째로 소개하는 것은 **Runner**의 개념, 즉 주어진 입력으로 어떤 객체를 실행하는 역할을 하는 객체이다. runner는 일반적으로 테스트 중인 프로그램이나 함수지만, 우리는 더 간단한 러너를 가질 수도 있습니다.
+
+runners를 기본 클래스로 시작해봅시다. runner는 기본적으로 입력(문자열)을 runner에게 전달하기 위해 사용되는 메서드 **run(입력)**을 제공합니다. **run()**은 **pair(result, outcome)**을 반환합니다. 여기서 result는 run에 대한 세부 정보를 제공하는 runner의 특별한 값이며, outcome은 result를 세 가지 범주로 분류하는 값입니다.
+
+* Runner.PASS – 테스트 통과. 실행 결과 올바른 결과가 나왔습니다.
+* Runner.FAIL – 테스트 실패. 실행 결과 잘못된 결과가 나왔습니다.
+* Runner.UNRESOLVED – 테스트 통과, 실패 둘다 아님. 입력이 잘못되어 실행할 수 없을 때 발생합니다.
+
+```python
+from typing import Tuple
+from typing import List
+from typing import Union
+import subprocess
+```
+
+```python
+Outcome = str
+```
+
+```python
+class Runner:
+    """Base class for testing inputs."""
+
+    # Test outcomes
+    PASS = "PASS"
+    FAIL = "FAIL"
+    UNRESOLVED = "UNRESOLVED"
+
+    def __init__(self) -> None:
+        """Initialize"""
+        pass
+
+    def run(self, inp: str):
+        """Run the runner with the given input"""
+        return (inp, Runner.UNRESOLVED)
+```
+
+기본 클래스로서, **Runner**는 단지 그것을 기반으로 하는 더 복잡한 runners들을 위한 인터페이스를 제공합니다. 보다 구체적으로, 우리는 메서드를 추가하기 위해서 또는 메서드를 오버라이드 하기 위해서 부모 클래스에서 메서드를 상속받는 자식 클래스를 소개합니다.
+
+다음은 이러한 자식 클래스의 한 가지 예입니다. **PrintRunner**는 상속된 run() 메서드를 오버라이드하여 주어진 모든 것을 출력합니다.
+
+```python
+class PrintRunner(Runner):
+    """Simple runner, printing the input."""
+
+    def run(self, inp):
+        """Print the given input"""
+        print(inp)
+        return (inp, Runner.UNRESOLVED)
+```
+
+```python
+p = PrintRunner()
+(result, outcome) = p.run("Some input")
+
+>>> Some input
+```
+
+result는 입력으로 전달된 문자열입니다.
+
+```python
+print(result)
+
+>>> some input
+```
+
+그러나 이 시점에서는 프로그램 동작을 분류할 방법이 없습니다.
+
+```python
+print(outcome)
+
+>>> UNRESOLVED
+```
+
+**ProgramRunner** 클래스는 대신 프로그램의 표준 입력으로 입력을 보냅니다. **ProgramRunner** 객체를 만들 때 프로그램이 지정됩니다.
+
+```python
+class ProgramRunner(Runner):
+    """Test a program with inputs."""
+
+    def __init__(self, program: Union[str, List[str]]) -> None:
+        """Initialize.
+           `program` is a program spec as passed to `subprocess.run()`"""
+        self.program = program
+
+    def run_process(self, inp: str = "") -> subprocess.CompletedProcess:
+        """Run the program with `inp` as input.
+           Return result of `subprocess.run()`."""
+        return subprocess.run(self.program,
+                              input=inp,
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE,
+                              universal_newlines=True)
+
+    def run(self, inp: str = "") -> Tuple[subprocess.CompletedProcess, Outcome]:
+        """Run the program with `inp` as input.  
+           Return test outcome based on result of `subprocess.run()`."""
+        result = self.run_process(inp)
+
+        if result.returncode == 0:
+            outcome = self.PASS
+        elif result.returncode < 0:
+            outcome = self.FAIL
+        else:
+            outcome = self.UNRESOLVED
+
+        return (result, outcome)
+```
+
+다음은 binary(즉, non-textual) 입력 및 출력의 변형입니다.
+
+```python
+class BinaryProgramRunner(ProgramRunner):
+    def run_process(self, inp: str = "") -> subprocess.CompletedProcess:
+        """Run the program with `inp` as input.  
+           Return result of `subprocess.run()`."""
+        return subprocess.run(self.program,
+                              input=inp.encode(),
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+```
+
+입력을 출력으로 복사하는 프로그램인 **cat**을 사용하여 **ProgramRunner**를 시연해 보겠습니다. 우리는 **cat**의 표준 호출이 단순히 그 작업을 하고, **cat**의 출력은 입력과 같다는 것을 알 수 있습니다.
+
+```python
+cat = ProgramRunner(program="cat")
+print(cat.run("hello"))
+
+>>> (CompletedProcess(args='cat', returncode=0, stdout='hello', stderr=''), 'PASS')
+```
 
 #
 
 
 ### Fuzzer Classes
+
+이제 소비자에게 실제로 데이터를 제공하는 퍼저를 정의해 보겠습니다. 퍼저의 기본 클래스는 일부 입력을 생성하는 하나의 중앙 메서드 **fuzz()**를 제공합니다. 그런 다음 **run()** 함수는 fuzz() 입력을 runner에게 보내 결과를 반환합니다; **runs()**는 지정된 횟수 동안 이 작업을 수행합니다.
+
+```python
+import random
+```
+
+```python
+class Fuzzer:
+    """Base class for fuzzers."""
+
+    def __init__(self) -> None:
+        """Constructor"""
+        pass
+
+    def fuzz(self) -> str:
+        """Return fuzz input"""
+        return ""
+
+    def run(self, runner: Runner = Runner()) \
+            -> Tuple[subprocess.CompletedProcess, Outcome]:
+        """Run `runner` with fuzz input"""
+        return runner.run(self.fuzz())
+
+    def runs(self, runner: Runner = PrintRunner(), trials: int = 10) \
+            -> List[Tuple[subprocess.CompletedProcess, Outcome]]:
+        """Run `runner` with fuzz input, `trials` times"""
+        return [self.run(runner) for i in range(trials)]
+```
+
+기본적으로 **Fuzzer** 객체는 **fuzz()** 함수가 추상 자리 표시자에 불과하기 때문에 많은 작업을 수행하지 않습니다. 그러나 하위 클래스 **RandomFuzer**는 위의 **fuzzer()** 함수의 기능을 구현하며 최소 길이를 지정하기 위해 추가 매개 변수 **min_length**를 추가합니다.
+
+```python
+class RandomFuzzer(Fuzzer):
+    """Produce random inputs."""
+
+    def __init__(self, min_length: int = 10, max_length: int = 100,
+                 char_start: int = 32, char_range: int = 32) -> None:
+        """Produce strings of `min_length` to `max_length` characters
+           in the range [`char_start`, `char_start` + `char_range`)"""
+        self.min_length = min_length
+        self.max_length = max_length
+        self.char_start = char_start
+        self.char_range = char_range
+
+    def fuzz(self) -> str:
+        string_length = random.randrange(self.min_length, self.max_length + 1)
+        out = ""
+        for i in range(0, string_length):
+            out += chr(random.randrange(self.char_start,
+                                        self.char_start + self.char_range))
+        return out
+```
+
+RandomFuzzer를 사용하면 퍼저를 만들 때 기본 구성을 한 번만 지정하면 되는 퍼저를 만들 수 있습니다.
+
+```python
+random_fuzzer = RandomFuzzer(min_length=20, max_length=20)
+for i in range(10):
+    print(random_fuzzer.fuzz())
+```
+
+```python
+1-86816)'5=0*8,*/#;*
+65"0+;'0-" 5%/%&7=5,
+$ ?!?2>>,9>?%:#8%?0>
+:,31*%0>>3:%??'70$(&
+7< 4!2-!" )486- 2(($
+.#(;&(#572/6%/2=)0"%
+#!%0=025$17/#-/4/*28
+.*9)#? 9:,3.)7+(#3-4
+&)<,>3;-"='0,#*':+ !
+ 3> )9"-6"4%#?,<8$;4
+```
+
+우리는 이제 이전에 정의된 cat runner에게 생성된 입력을 전송하여 cat이 실제로 (퍼즈된) 입력을 출력으로 복사하는지 확인할 수 있습니다.
+
+```python
+for i in range(10):
+    inp = random_fuzzer.fuzz()
+    result, outcome = cat.run(inp)
+    assert result.stdout == inp
+    assert outcome == Runner.PASS
+```
+
+그러나 **Fuzzer**를 **Runner**와 결합하는 것은 매우 일반적이므로 이를 위해 **Fuzzer** 클래스에서 제공하는 **run()** 메서드를 사용할 수 있습니다.
+
+```python
+print(random_fuzzer.run(cat))
+
+>>> (CompletedProcess(args='cat', returncode=0, stdout='=!0(".0/4*\'!<75&;:5.', stderr=''), 'PASS')
+```
+
+**runs()**를 사용하면 fuzzing run을 여러 번 반복하여 결과 리스트를 얻을 수 있습니다.
+
+```python
+print(random_fuzzer.runs(cat, 10))
+
+```
+
+```python
+[(CompletedProcess(args='cat', returncode=0, stdout='(1\'=6<-(14&/,!++"+5>', stderr=''), 'PASS'), (CompletedProcess(args='cat', returncode=0, stdout="'8$>!)/#'952(+=67:;1", stderr=''), 'PASS'), (CompletedProcess(args='cat', returncode=0, stdout='96#:?/>"+%*:,+-)\',&/', stderr=''), 'PASS'), (CompletedProcess(args='cat', returncode=0, stdout='"&31,%,2??$*1>41.?.8', stderr=''), 'PASS'), (CompletedProcess(args='cat', returncode=0, stdout="+,6; %%.-1, ':2&#!,:", stderr=''), 'PASS'), (CompletedProcess(args='cat', returncode=0, stdout='<*013\'!.;=7+932&" 4$', stderr=''), 'PASS'), (CompletedProcess(args='cat', returncode=0, stdout="40'?*4&8;!;251 .7(92", stderr=''), 'PASS'), (CompletedProcess(args='cat', returncode=0, stdout=')37)4588(%\'7)$30"?*#', stderr=''), 'PASS'), (CompletedProcess(args='cat', returncode=0, stdout="'*<35=):?18;6'4>6)6#", stderr=''), 'PASS'), (CompletedProcess(args='cat', returncode=0, stdout='+)""2.+<=1&! +!<+?%7', stderr=''), 'PASS')]
+```
+
+이 장에서 소개한 간단한 random fuzzers부터 시작해서 훨씬 더 발전된 fuzzers들을 만들기 위해 우리는 모든 준비가 됬습니다. 채널을 고정하세요!
 
 
 #
@@ -890,9 +1289,17 @@ print(result)
 
 ## Lessons Learned
 
-*
-*
-*
+* 무작위 입력을 생성하는 ("fuzzing")은 임의 프로그램의 견고성을 신속하게 테스트할 수 있는 간단하고 비용 효율적인 방법입니다.
+* 버그 fuzzer가 발견한 버그는 주로 입력 처리의 오류와 결함 때문이다.
+* 에러를 잡기 위해서 가능한 많은 일관성 검사기를 사용하십시오.
+
+
+다 마쳤으니 사용한 파일을 제거합시다.
+
+```python
+os.remove(FILE)
+os.removedirs(tempdir)
+```
 
 ---
 
@@ -900,11 +1307,35 @@ print(result)
 
 ## Exercises
 
+[Miller et al, 1990]에 트로프 조판 시스템에서 Miller가 발견한 오류중 하나 입니다. Troff는 라인으로 구성된 텍스트를 입력으로 사용합니다. 점(.)으로 시작하는 라인에는 타이핑 명령이 포함됩니다.
+
+```python
+.NH
+Some Heading
+.LP
+Some paragraph
+```
+
+(nroff-ms를 사용하여) 텍스트를 생성합니다.
+
+```python
+1.  Some Heading
+
+Some paragraph
+```
+
+Miller의 시점에서, troff의 입력이 포함되면 실패합니다.
+
+1. 입력 시퀀스 **\D**(백슬래시 + D) 뒤에 인쇄할 수 없는 문자가 있습니다.
+2. ASCII 128~255 범위의 문자(예: 8번째 비트 설정)와 줄 바꿈 문자
+3. 점(**.**) 하나 뒤에 줄 바꿈 문자가 표시됩니다.
 
 #
 
 
 ### Exercise 1: Simulate Troff
+
+위의 각 항목에 대해 실패 기준을 충족하면 실패하는 Python 함수 **f(s)**를 작성하십시오.
 
 
 #
@@ -912,8 +1343,11 @@ print(result)
 
 ### Exercise 2: Run Simulated Troff
 
+위의 술어를 확인하는 **Runner**의 하위 클래스로 **TroffRunner** 클래스를 만드세요. Fuzzer를 실행시키세요. **Fuzzer** 객체가 전체 문자 범위를 생성하도록 하세요. 테스트 실패 빈도를 측정하세요.
 
 #
 
 
 ### Exercise 3: Run Real Troff
+
+**BinaryProgramRunner**를 사용하여 실제 **troff** 프로그램에 구성한 fuzzer를 적용하세요. 실패 또는 충돌을 나타내는 출력 코드가 0이 아닌 run을 생성할 수 있는지 확인하세요.
