@@ -1,7 +1,3 @@
----
-
-#
-
 # Efficient Grammar Fuzzing
 
 #
