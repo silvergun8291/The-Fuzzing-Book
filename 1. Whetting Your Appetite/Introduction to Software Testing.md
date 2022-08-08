@@ -4,7 +4,7 @@
 
 ## 목차
 
-* Simple Testing
+* [Simple Testing](#simple-testing)
   * Running a Fucntion
   * Debugging a Function
   * Checking a Function
