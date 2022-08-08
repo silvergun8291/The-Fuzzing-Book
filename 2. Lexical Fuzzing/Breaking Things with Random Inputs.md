@@ -8,25 +8,25 @@
 * A Testing Assignment
 * A Simple Fuzzer
 * Fuzzing External Programs
-	- Creating Input Files
-	- Invoking External Programs
-	- Long-Running Fuzzing
+	* Creating Input Files
+	* Invoking External Programs
+	* Long-Running Fuzzing
 * Bugs Fuzzers Find
-	- Buffer Overflows
-	- Missing Error Checks
-	- Rogue Numbers
+	* Buffer Overflows
+	* Missing Error Checks
+	* Rogue Numbers
 * Catching Errors
-	- Generic Checkers
-	- Program-Specific Checkers
-	- Static Code Checkers
+	* Generic Checkers
+	* Program-Specific Checkers
+	* Static Code Checkers
 * A Fuzzing Architecture
-	- Runner Classes
-	- Fuzzer Classes
+	* Runner Classes
+	* Fuzzer Classes
 * Lessons Learned
 * Exercises
-	- Exercise 1: Simulate Troff
-	- Exercise 2: Run Simulated Troff
-	- Exercise 3: Run Real Troff
+	* Exercise 1: Simulate Troff
+	* Exercise 2: Run Simulated Troff
+	* Exercise 3: Run Real Troff
 
 #
 ---
