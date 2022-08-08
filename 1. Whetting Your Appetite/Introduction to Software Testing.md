@@ -5,15 +5,15 @@
 ## 목차
 
 * [Simple Testing](#simple-testing)
-  * Running a Fucntion
-  * Debugging a Function
-  * Checking a Function
-* Automating Test Execution
-* Generating Tests
-* Run-Time verification
-* System Input vs Function Input
-* The Limits of Testing
-* Lessins Learned
+  * [Running a Fucntion](#running-a-function)
+  * [Debugging a Function](#debugging-a-function)
+  * [Checking a Function](#checking-a-function)
+* [Automating Test Execution](#automating-test-execution)
+* [Generating Tests](#generating-tests)
+* [Run-Time verification](#run-time-verification)
+* [System Input vs Function Input](#system-input-vs-function-input)
+* [The Limits of Testing](#the-limits-of-testing)
+* [Lessons Learned](#lessons-learned)
 
 #
 ---
