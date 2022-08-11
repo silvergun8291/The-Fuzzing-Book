@@ -51,7 +51,7 @@
 
 ### Fuzzing Web Forms
 
-WebFormFuzzer는 웹 폼과 상호 작용하는 방법을 방법을 보여줍니다. 웹 폼과 함께 URL이 주어지면, URL을 생성하는 문법을 자동으로 추출합니다. 이 URL에는 모든 폼 요소에 대한 값이 포함되어 있습니다. GET 폼과 HTML 폼의 하위 요소들만 지원됩니다.
+WebFormFuzzer는 웹 form과 상호 작용하는 방법을 방법을 보여줍니다. 웹 form과 함께 URL이 주어지면, URL을 생성하는 문법을 자동으로 추출합니다. 이 URL에는 모든 form 요소에 대한 값이 포함되어 있습니다. GET form과 HTML form의 하위 요소들만 지원됩니다.
 
 취약한 웹 서버에 대해 추출된 문법은 다음과 같습니다.
 
@@ -246,7 +246,7 @@ HTML(HTML_ORDER_RECEIVED.format(item_name="One FuzzingBook Rotary Hammer",
 
 **Terms and Conditions**
 
-웹 사이트는 필요한 법률 용어를 가지고 있어야만 완성할 수 있다. 이 페이지에는 몇 가지 약관이 표시됩니다.
+웹 사이트는 필요한 법률 용어를 가지고 있어야만 완성할 수 있습니다. 이 페이지에는 몇 가지 약관이 표시됩니다.
 
 ```html
 HTML_TERMS_AND_CONDITIONS = """
@@ -350,7 +350,7 @@ print(db.execute("SELECT * FROM orders").fetchall())
 
 **Handling HTTP Requests**
 
-우리는 주문서와 데이터베이스를 가지고 있습니다. 이제 우리는 모든 것을 하나로 묶는 웹 서버가 필요하다. Python http.server 모듈은 간단한 HTTP 서버를 구축하는 데 필요한 모든 것을 제공합니다. HTTPRequestHandler는 HTTP 요청, 특히 웹 페이지 검색을 위한 GET 요청을 받고 처리하는 객체입니다.
+우리는 주문서와 데이터베이스를 가지고 있습니다. 이제 우리는 모든 것을 하나로 묶는 웹 서버가 필요합니다. Python http.server 모듈은 간단한 HTTP 서버를 구축하는 데 필요한 모든 것을 제공합니다. HTTPRequestHandler는 HTTP 요청, 특히 웹 페이지 검색을 위한 GET 요청을 받고 처리하는 객체입니다.
 
 주어진 경로를 기반으로 분기하여 요청된 웹 페이지를 제공하는 do_GET() 메서드를 구현합니다. / 경로를 요청하면 주문 form이 생성됩니다. /order로 시작하는 경로는 처리할 주문을 전송합니다. 다른 모든 요청은 Page Not Found로 끝납니다.
 
@@ -460,7 +460,7 @@ class SimpleHTTPRequestHandler(SimpleHTTPRequestHandler):
         db.commit()
 ```
 
-주문 저장 후 확인 HTML 페이지를 보내드리며, URL의 값으로 다시 인스턴스화 됩니다.
+주문 저장 후 확인 HTML 페이지를 보내며, URL의 값으로 다시 인스턴스화 됩니다.
 
 ```python
 class SimpleHTTPRequestHandler(SimpleHTTPRequestHandler):
@@ -480,7 +480,7 @@ class SimpleHTTPRequestHandler(SimpleHTTPRequestHandler):
 
 **Other HTTP commands**
 
-GET 명령 외에도, HTTP 서버는 다른 HTTP 명령도 지원할 수 있습니다; 우리는 웹 페이지의 HEAD 정보를 반환하는 HEAD 명령을 지원합니다. 우리의 경우, 이것은 항상 비어 있습니다.
+GET 명령 외에도, HTTP 서버는 다른 HTTP 명령도 지원할 수 있습니다. 우리는 웹 페이지의 HEAD 정보를 반환하는 HEAD 명령을 지원합니다. 우리의 경우, 이것은 항상 비어 있습니다.
 
 ```python
 class SimpleHTTPRequestHandler(SimpleHTTPRequestHandler):
@@ -632,7 +632,7 @@ display_httpd_message("I am a httpd server message")
 >>> I am a httpd server message
 ```
 
-print_httpd_messages() 메서드는 지금까지 큐에 누적된 모든 메시지를 인쇄합니다.
+print_httpd_messages() 메서드는 지금까지 큐에 누적된 모든 메시지를 출력합니다.
 
 ```python
 def print_httpd_messages():
@@ -763,7 +763,7 @@ httpd_url
 
 **Direct Browser Access**
 
-로컬 호스트에서도 Jupyter 노트북 서버를 실행하고 있다면, 이제 주어진 URL에서 직접 서버에 접근할 수 있습니다. 아래 링크를 클릭하여 httpd_url에서 주소를 여십시오.
+로컬 호스트에서 Jupyter 노트북 서버를 실행하고 있다면, 이제 주어진 URL에서 직접 서버에 접근할 수 있습니다. 아래 링크를 클릭하여 httpd_url에서 주소를 여십시오.
 
 **Note**: 이는 로컬 호스트에서 Jupyter 노트북 서버를 실행하는 경우에만 작동합니다.
 
@@ -1044,7 +1044,7 @@ print(db.execute("SELECT * FROM orders").fetchall())
 
 ### Fuzzing with Unexpected Values
 
-이제 "표준" 값에 직면했을 때 서버가 잘 작동한다는 것을 알 수 있습니다. 하지만 만약 우리가 비표준 값을 넣으면 어떻게 될까요? 이를 위해 URL에 랜덤 변경을 삽입하는 mutation fuzzer를 사용합니다. 우리의 시드(즉, 변이될 값)는 grammar fuzzer에서 나옵니다.
+이제 "표준" 값이 들어갔을 때 서버가 잘 작동한다는 것을 알 수 있습니다. 하지만 만약 우리가 비표준 값을 넣으면 어떻게 될까요? 이를 위해 URL에 랜덤 변경을 삽입하는 mutation fuzzer를 사용합니다. 우리의 시드(즉, 변이될 값)는 grammar fuzzer에서 나옵니다.
 
 ```python
 seed = order_fuzzer.fuzz()
@@ -1252,7 +1252,7 @@ print(html_text[html_text.find("<form"):html_text.find("</form>") + len("</form>
 
 <input\>, <select\>, <option\> 같이 입력을 받는 많은 form 요소가 있음을 알 수 있습니다. 이제 아이디어는 문제의 웹 페이지의 HTML을 구문 분석하고, 이러한 개별 입력 요소를 추출한 다음, 일치하는 URL을 생성하는 문법을 만들어 form을 효과적으로 작성하는 것입니다.
 
-HTML 페이지를 구문 분석하기 위해 HTML을 구문 분석하고 our own parser infrastructure를 사용하는 문법을 정의할 수 있습니다. 그러나 wheel을 재창조하지 않고 파이썬 라이브러리의 기존 전용 HTMLParser 클래스를 기반으로 하는 것이 훨씬 쉽습니다.
+HTML 페이지를 구문 분석하기 위해 HTML을 구문 분석하고 our own parser infrastructure를 사용하는 문법을 정의할 수 있습니다. 그러나 wheel을 다시 만들지 않고 파이썬 라이브러리의 기존 전용 HTMLParser 클래스를 기반으로 하는 것이 훨씬 쉽습니다.
 
 ```python
 from html.parser import HTMLParser
@@ -1275,10 +1275,10 @@ class FormHTMLParser(HTMLParser):
         self.fields: Dict[str, List[str]] = {}
 
         # Stack of currently active selection names
-        self.select: List[str] = []
+        self.select: List[str] = [] 
 ```
 
-구문 분석하는 동안 파서는 발견된 모든 여는 태그(예: <form\>)에 대해 handle_starttag()를 호출하며, 반대로 닫는 태그(예: </form\>)를 호출합니다. 속성은 연관된 속성과 값의 맵을 제공합니다.
+구문 분석을 하는 동안 파서는 발견된 모든 여는 태그(예: <form\>)에 대해 handle_starttag()를 호출하며, 반대로 닫는 태그(예: </form\>)를 호출합니다. 속성은 연관된 속성과 값의 맵을 제공합니다.
 
 개별 태그를 처리하는 방법은 다음과 같습니다.
 
@@ -1580,7 +1580,7 @@ HTML(webbrowser(urljoin(httpd_url, order_fuzzer.fuzz())))
 
 ### A Fuzzer for Web Forms
 
-모든 작업을 한 곳에서 수행하는 WebFormFuzer 클래스를 정의해 보겠습니다. URL이 주어지면 HTML 콘텐츠를 추출하고 문법을 뽑아낸 다음 입력을 생성합니다.
+모든 작업을 한 곳에서 수행하는 WebFormFuzer 클래스를 정의해 보겠습니다. URL이 주어지면 HTML content를 추출하고 문법을 뽑아낸 다음 입력을 생성합니다.
 
 ```python
 class WebFormFuzzer(GrammarFuzzer):
@@ -1677,7 +1677,7 @@ clear_httpd_messages()
 
 ## Crawling User Interfaces
 
-지금까지, 우리는 탐구할 수 있는 형태가 오직 하나일 것이라고 가정했습니다. 물론, 실제 웹 서버에는 여러 페이지가 있고, 여러 form도 있을 수 있습니다. 우리는 한 페이지에서 발생하는 모든 링크를 탐색하는 간단한 크롤러를 정의합니다.
+지금까지, 우리는 탐색할 수 있는 form이 오직 하나일 것이라고 가정했습니다. 물론, 실제 웹 서버에는 여러 페이지가 있고, 여러 form도 있을 수 있습니다. 우리는 한 페이지에서 발생하는 모든 링크를 탐색하는 간단한 크롤러를 정의합니다.
 
 우리 크롤러는 꽤 직설적입니다. 이것의 주요 구성 요소는 다시 HTML 파서이며 폼의 링크에 대한 HTML 코드를 분석하는 HTML 파서입니다.
 
@@ -1703,7 +1703,7 @@ class LinkHTMLParser(HTMLParser):
             self.links.append(attributes["href"])
 ```
 
-실제 크롤러는 하나의 URL을 차례로 생성하는 생성기 함수 crawl()를 제공합니다. 기본적으로 동일한 호스트에 있는 URL만 반환합니다. 매개 변수 max_pages는 검색할 페이지 수(기본값: 1)를 제어합니다. 우리는 또한 검색이 허용되는 페이지를 확인하기 위해 원격 사이트에 있는 robots.txt 파일을 존중합니다.
+실제 크롤러는 하나의 URL을 차례로 생성하는 생성기 함수 crawl()를 제공합니다. 기본적으로 동일한 호스트에 있는 URL만 반환합니다. 매개 변수 max_pages는 검색할 페이지 수(기본값: 1)를 제어합니다. 우리는 또한 검색이 허용되는 페이지를 확인하기 위해 원격 사이트에 있는 robots.txt 파일을 이용합니다.
 
 
 ### Excursion: Implementing a Crawler
@@ -1881,7 +1881,7 @@ clear_httpd_messages()
 
 ## Crafting Web Attacks
 
-이 장을 마치기 전에 일반적인 장애뿐만 아니라 공격자가 서버를 마음대로 조작할 수 있는 "비일반적인" 입력의 특수 클래스를 살펴보겠습니다. 서버를 사용한 세 가지 일반적인 공격에 대해 설명하겠습니다. 이 공격은 실제로 모든 공격에 취약한 것으로 밝혀졌습니다.
+이 장을 마치기 전에 일반적인 오류뿐만 아니라 공격자가 서버를 마음대로 조작할 수 있는 "비일반적인" 입력의 특수 클래스를 살펴보겠습니다. 서버를 사용한 세 가지 일반적인 공격에 대해 설명하겠습니다. 이 공격은 실제로 모든 공격에 취약한 것으로 밝혀졌습니다.
 
 #
 
@@ -1928,7 +1928,7 @@ HTML(webbrowser(urljoin(httpd_url, order_with_injected_html)))
     Jane Doe
 
     Click here for cute cat pictures!
-
+    
 
 
     ', 'j_smith@example.com', 'Seattle', '02805')
@@ -1947,7 +1947,7 @@ print(db.execute("SELECT * FROM orders WHERE name LIKE '%<%'").fetchall())
 [('drill', '\n    Jane Doe<p>\n    <strong><a href="www.lots.of.malware">Click here for cute cat pictures!</a></strong>\n    </p>\n    ', 'j_smith@example.com', 'Seattle', '02805')]
 ```
 
-즉, 데이터베이스를 쿼리하는 모든 사람(예: 주문을 처리하는 운영자)은 링크를 볼 수 있기 때문에 링크의 영향력이 배가될 수 있습니다. 주입된 HTML을 조심스럽게 제작하면 주입된 HTML이 최종적으로 삭제될 때까지 많은 수의 사용자에게 악성 콘텐츠를 노출할 수 있다.
+즉, 데이터베이스를 쿼리하는 모든 사람(예: 주문을 처리하는 운영자)은 링크를 볼 수 있기 때문에 링크의 영향력이 배가될 수 있습니다. injection될 HTML을 조심스럽게 제작하면 injection된 HTML이 최종적으로 삭제될 때까지 많은 수의 사용자에게 악성 콘텐츠를 노출할 수 있습니다.
 
 
 #
@@ -2062,9 +2062,9 @@ sql_command
 "INSERT INTO orders VALUES ('tshirt', 'Jane', 'x', 'x', 'x'); DELETE FROM orders; -- ', 'j.doe@example.com', 'Seattle', '98104')"
 ```
 
-여기서 발생하는 것은 데이터베이스에 값을 삽입하는 명령("dummy" 값 x)과 주문 테이블의 모든 항목을 삭제하는 SQL DELETE 명령입니다.문자열 - 원래 쿼리의 나머지 부분이 쉽게 무시될 수 있도록 SQL 주석을 시작합니다.SQL 명령으로도 해석될 수 있는 문자열을 만들어 공격자는 데이터베이스 데이터를 변경하거나 삭제하고 인증 메커니즘 등을 무시할 수 있습니다.
+여기서 발생하는 것은 데이터베이스에 값을 삽입하는 명령("dummy" 값 x)과 주문 테이블의 모든 항목을 삭제하는 SQL DELETE 명령입니다.문자열 - 원래 쿼리의 나머지 부분이 쉽게 무시될 수 있도록 SQL 주석을 시작합니다. SQL 명령으로도 해석될 수 있는 문자열을 만들어 공격자는 데이터베이스 데이터를 변경하거나 삭제하고 인증 메커니즘 등을 무시할 수 있습니다.
 
-우리 서버도 그런 공격에 취약합니까? 물론 그렇습니다. 위와 같이 SQL 주입이 있는 문자열로 파라미터를 설정할 수 있도록 특별한 문법을 만듭니다.
+우리 서버도 그런 공격에 취약합니까? 물론 그렇습니다. 위와 같이 SQL injection이 있는 문자열로 파라미터를 설정할 수 있도록 특별한 문법을 만들어 보겠습니다.
 
 ```python
 from Grammars import extend_grammar
@@ -2096,7 +2096,7 @@ print(db.execute("SELECT * FROM orders").fetchall())
 [('tshirt', 'Jane Doe', 'doe@example.com', 'Seattle', '98104'), ('lockset', 'Jane Doe', 'j_smith@example.com', 'Seattle', '16631'), ('drill', 'Jane Doe', 'j.doe@example.com', '', '45732'), ('drill', 'Jane Doe', 'j,doe@example.com', 'Seattle', '45732'), ('drill', ' ', '5F @p   a ', 'cdb', '3230'), ('drill', ' m', '@@0', 'd', '9'), ('lockset', '  ', 'c@d', '_', '6'), ('lockset', ' ', 'd@_-', '2  0', '1040'), ('tshirt', 'Kb', 'm@ ', 'zy ', '13'), ('lockset', 'd', 'U @t', ' ', '4'), ('tshirt', '_ 2', '1  @ ', ' ', '30'), ('tshirt', ' ', 'a-@ ', ' W', '2'), ('lockset', 'V', '  @aUeeD', ' ', '01'), ('tshirt', 'oc', '  @ ', 'a', '25'), ('drill', '55', '3>@@5', 'L', '0'), ('tshirt', ' ', 'b t2@ ', 'E9', '54'), ('drill', 'R-', 'e@?', ' ', '5'), ('drill', '\n    Jane Doe<p>\n    <strong><a href="www.lots.of.malware">Click here for cute cat pictures!</a></strong>\n    </p>\n    ', 'j_smith@example.com', 'Seattle', '02805'), ('lockset', 'Jane Doe<script>document.title = document.cookie.substring(0, 10);</script>', 'j.doe@example.com', 'Seattle', '34506')]
 ```
 
-이제 우리의 URL을 SQL injection으로 서버에 보내봅시다. 로그에서 "악성" SQL 명령이 위에서 스케치한 대로 생성되고 실행되는 것을 볼 수 있습니다.
+이제 우리의 URL을 SQL injection으로 서버에 보내봅시다. 로그에서 악의적인 SQL 명령이 위에서 설계한 대로 생성되고 실행되는 것을 볼 수 있습니다.
 
 ```python
 contents = webbrowser(urljoin(httpd_url, order_with_injected_sql))
@@ -2119,7 +2119,7 @@ print(db.execute("SELECT * FROM orders").fetchall())
 
 <img src="https://velog.velcdn.com/images/silvergun8291/post/78dcbd6d-2521-40f0-b645-a3346b9f11b2/image.png">
 
-임의의 명령을 실행할 수 없더라도 주문 데이터베이스를 손상시킬 수 있으면 여러 가지 문제가 발생할 수 있습니다. 예를 들어, 기존 사용자의 주소와 일치하는 신용 카드 번호를 사용하여 확인을 거친 후 주문을 제출하면 해당 주문이 선택한 주소로 배달됩니다. 또한 SQL injection을 사용하여 위와 같이 HTML 및 JavaScript 코드를 주입할 수 있으며, 이러한 도메인에 적합한 가능한 sanitization을 생략할 수 있습니다.
+임의의 명령을 실행할 수 없더라도 주문 데이터베이스를 손상시킬 수 있으면 여러 가지 문제가 발생할 수 있습니다. 예를 들어, 기존 사용자의 주소와 일치하는 신용 카드 번호를 사용하여 확인을 거친 후 주문을 제출하면 해당 주문이 선택한 주소로 배달됩니다. 또한 SQL injection을 사용하여 위와 같이 HTML 및 JavaScript 코드를 주입할 수 있으며, 이러한 도메인에 적합한 sanitization을 생략할 수 있습니다.
 
 이러한 문제를 피하기 위해서 모든 서드파티 입력을 검사해야 합니다. 입력의 어떤 문자도 일반 HTML, 자바스크립트, SQL로 해석할 수 없어야 합니다. 이는 입력값을 적절히 인용하고 이스케이프함으로써 달성됩니다. exercises는 무엇을 해야 하는지에 대한 몇 가지 지침을 줍니다.
 
@@ -2371,7 +2371,7 @@ orders_db_is_empty()
 True
 ```
 
-다시 한 번, 가능한 자동화 수준에 주목하세요. 우린 할 수 있습니다.
+다시 한 번, 가능한 자동화 수준에 주목하세요.
 
 * 가능한 forms를 위해 호스트의 웹 페이지 크롤링
 * form fields 및 가능한 값 자동 식별
@@ -2389,4 +2389,8 @@ True
 * 사용자 인터페이스(웹 및 기타)는 예상된 값과 예상치 못한 값으로 테스트해야 합니다.
 * 사용자 인터페이스에서 문법을 뽑아 내어 광범위한 테스트를 할 수 있습니다.
 * 결과적으로 입력을 검사하면 코드 및 SQL Injection과 같은 일반적인 공격을 방지할 수 있습니다.
-* 다른 사람의 모든 실수를 반복할 가능성이 있으므로 직접 웹 서버를 작성하려고 하지 마세요.
+* 사람은 누구나 실수를 반복할 수 있기 때문에 직접 웹 서버를 작성하려고 하지 마세요.
+
+
+
+
